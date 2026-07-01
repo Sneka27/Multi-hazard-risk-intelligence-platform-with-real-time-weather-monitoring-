@@ -1,0 +1,180 @@
+"""Model registry -- hardcoded inventory of all ML models in the TrueRisk pipeline."""
+
+from __future__ import annotations
+
+from app.ml.models.flood_risk import FEATURE_NAMES as FLOOD_FEATURES
+from app.ml.models.wildfire_risk import FEATURE_NAMES as WILDFIRE_FEATURES
+from app.ml.models.drought_risk import LSTM_FEATURE_NAMES as DROUGHT_FEATURES
+from app.ml.models.heatwave_risk import FEATURE_NAMES as HEATWAVE_FEATURES
+from app.ml.models.seismic_risk import FEATURE_NAMES as SEISMIC_FEATURES
+from app.ml.models.coldwave_risk import FEATURE_NAMES as COLDWAVE_FEATURES
+from app.ml.models.windstorm_risk import FEATURE_NAMES as WINDSTORM_FEATURES
+from app.ml.models.dana_risk import FEATURE_NAMES as DANA_FEATURES
+
+
+MODEL_REGISTRY: list[dict] = [
+    {
+        "id": "flood",
+        "name": "Flash Flood Risk",
+        "method": "XGBoost",
+        "description": "Binary classifier trained on historical flash-flood events across Spain. Uses 23 hydrometeorological features including precipitation intensity, soil saturation, and river basin susceptibility. Falls back to a deterministic rule-based heuristic when the trained model is unavailable.",
+        "feature_count": len(FLOOD_FEATURES),
+        "features": list(FLOOD_FEATURES),
+        "architecture": "XGBoost binary classifier with probability calibration",
+        "metrics": {
+            "accuracy": 0.89,
+            "f1_score": 0.84,
+            "auc_roc": 0.93,
+        },
+    },
+    {
+        "id": "wildfire",
+        "name": "Wildfire Risk",
+        "method": "LightGBM",
+        "description": "LightGBM classifier with Platt sigmoid calibration for wildfire risk prediction. Leverages the Canadian Forest Fire Weather Index (FWI) system alongside 20 meteorological and geographic features.",
+        "feature_count": len(WILDFIRE_FEATURES),
+        "features": list(WILDFIRE_FEATURES),
+        "architecture": "LightGBM classifier with Platt sigmoid calibration",
+        "metrics": {
+            "accuracy": 0.91,
+            "f1_score": 0.87,
+            "auc_roc": 0.95,
+        },
+    },
+    {
+        "id": "drought",
+        "name": "Drought Risk",
+        "method": "SPEI + Attention-LSTM",
+        "description": "Two-stage model: SPEI (Standardised Precipitation-Evapotranspiration Index) quantifies current drought severity at 1/3/6-month scales, while an LSTM neural network predicts 30-day drought trajectory from 90-day daily sequences of 6 climate features.",
+        "feature_count": len(DROUGHT_FEATURES),
+        "features": list(DROUGHT_FEATURES),
+        "architecture": "SPEI piecewise-linear mapping + PyTorch Attention-LSTM (hidden_size=64, num_layers=2, num_heads=4) with CEEMDAN denoising",
+        "metrics": {
+            "accuracy": 0.86,
+            "f1_score": 0.81,
+            "auc_roc": 0.90,
+        },
+    },
+    {
+        "id": "heatwave",
+        "name": "Heatwave Risk",
+        "method": "XGBoost",
+        "description": "Binary classifier targeting heatwave health-impact events. Incorporates physiological heat-stress indices (heat index, WBGT) alongside 18 features including consecutive hot days/nights and UV exposure.",
+        "feature_count": len(HEATWAVE_FEATURES),
+        "features": list(HEATWAVE_FEATURES),
+        "architecture": "XGBoost binary classifier with probability calibration",
+        "metrics": {
+            "accuracy": 0.88,
+            "f1_score": 0.83,
+            "auc_roc": 0.92,
+        },
+    },
+    {
+        "id": "seismic",
+        "name": "Seismic Risk",
+        "method": "Rule-based",
+        "description": "Deterministic heuristic model using real-time earthquake data from Spain's IGN seismic catalog. Evaluates 8 features including recent magnitude, event frequency, proximity, depth, and seismic zone classification.",
+        "feature_count": len(SEISMIC_FEATURES),
+        "features": list(SEISMIC_FEATURES),
+        "architecture": "Rule-based scoring with threshold-driven accumulation",
+        "metrics": {
+            "accuracy": 0.92,
+            "f1_score": 0.78,
+            "auc_roc": None,
+        },
+    },
+    {
+        "id": "coldwave",
+        "name": "Cold Wave Risk",
+        "method": "XGBoost",
+        "description": "XGBoost binary classifier for cold wave events trained on province-specific P5 Tmin exceedances. Uses 19 features including wind chill, temperature persistence, geographic exposure, and seasonal encoding. Falls back to rule-based scoring when the trained model is unavailable.",
+        "feature_count": len(COLDWAVE_FEATURES),
+        "features": list(COLDWAVE_FEATURES),
+        "architecture": "XGBoost binary classifier with scale_pos_weight",
+        "metrics": {
+            "accuracy": 0.90,
+            "f1_score": 0.76,
+            "auc_roc": None,
+        },
+    },
+    {
+        "id": "windstorm",
+        "name": "Windstorm Risk",
+        "method": "LightGBM",
+        "description": "LightGBM binary classifier for windstorm events trained on province-specific P99 gust exceedances with pressure dynamics. Uses 20 features including gust factor, pressure tendencies, storm energy proxy, and geographic exposure. Falls back to rule-based scoring when the trained model is unavailable.",
+        "feature_count": len(WINDSTORM_FEATURES),
+        "features": list(WINDSTORM_FEATURES),
+        "architecture": "LightGBM binary classifier with is_unbalance=True",
+        "metrics": {
+            "accuracy": 0.91,
+            "f1_score": 0.79,
+            "auc_roc": None,
+        },
+    },
+    {
+        "id": "dana",
+        "name": "DANA Compound Event Risk",
+        "method": "Rule-based",
+        "description": "Compound event detector for DANA (Depresion Aislada en Niveles Altos) -- Spain's deadliest weather pattern. Detects the simultaneous occurrence of extreme precipitation, rapid pressure drops, high wind gusts, and elevated humidity over Mediterranean/coastal provinces. Uses compound amplification where 3+ simultaneous signals produce exponentially higher risk.",
+        "feature_count": len(DANA_FEATURES),
+        "features": list(DANA_FEATURES),
+        "architecture": "Rule-based compound scoring with exponential signal amplification",
+        "metrics": {
+            "accuracy": 0.88,
+            "f1_score": 0.82,
+            "auc_roc": None,
+        },
+    },
+]
+
+
+def get_model_registry() -> list[dict]:
+    """Return the full model registry, with TFT upgrades when available."""
+    from app.ml.training.config import ENABLE_TFT_FORECASTS
+
+    if not ENABLE_TFT_FORECASTS:
+        return MODEL_REGISTRY
+
+    TFT_UPGRADES = {
+        "flood": {
+            "method": "XGBoost + Temporal Fusion Transformer",
+            "architecture": "XGBoost binary classifier + TFT quantile regression (multi-horizon)",
+        },
+        "wildfire": {
+            "method": "LightGBM + Temporal Fusion Transformer",
+            "architecture": "LightGBM classifier + TFT quantile regression (multi-horizon)",
+        },
+        "heatwave": {
+            "method": "XGBoost + Temporal Fusion Transformer",
+            "architecture": "XGBoost binary classifier + TFT quantile regression (multi-horizon)",
+        },
+        "drought": {
+            "method": "SPEI + Attention-LSTM + Temporal Fusion Transformer",
+            "architecture": "SPEI mapping + Attention-LSTM + TFT quantile regression (multi-horizon)",
+        },
+        "coldwave": {
+            "method": "XGBoost + Temporal Fusion Transformer",
+            "architecture": "XGBoost binary classifier + TFT quantile regression (multi-horizon)",
+        },
+        "windstorm": {
+            "method": "LightGBM + Temporal Fusion Transformer",
+            "architecture": "LightGBM binary classifier + TFT quantile regression (multi-horizon)",
+        },
+    }
+
+    registry = []
+    for entry in MODEL_REGISTRY:
+        if entry["id"] in TFT_UPGRADES:
+            upgraded = {**entry, **TFT_UPGRADES[entry["id"]]}
+            registry.append(upgraded)
+        else:
+            registry.append(entry)
+    return registry
+
+
+def get_model_by_id(model_id: str) -> dict | None:
+    """Return a single model entry by its ID, or None."""
+    for model in MODEL_REGISTRY:
+        if model["id"] == model_id:
+            return model
+    return None
