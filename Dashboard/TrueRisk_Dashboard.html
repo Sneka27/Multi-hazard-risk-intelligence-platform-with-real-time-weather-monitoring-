@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrueRisk — Multi-Hazard Intelligence Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --text: #e8edf5;
+    --muted: #6b7fa3;
+    --critical: #ff3b5c;
+    --high: #ff7c2a;
+    --moderate: #f5c518;
+    --low: #22d97a;
+    --accent: #4f8ef7;
+    --accent2: #a855f7;
+    --critical-bg: rgba(255,59,92,0.1);
+    --high-bg: rgba(255,124,42,0.1);
+    --moderate-bg: rgba(245,197,24,0.1);
+    --low-bg: rgba(34,217,122,0.1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #0d1b35 0%, #0a0e1a 60%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-icon {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 0 20px rgba(79,142,247,0.3);
+  }
+
+  .logo-text { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .logo-text span { color: var(--accent); }
+
+  .header-meta {
+    display: flex; align-items: center; gap: 24px;
+  }
+
+  .date-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 6px;
+  }
+
+  .live-dot {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 600;
+    color: var(--low);
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  .live-dot::before {
+    content: '';
+    width: 8px; height: 8px;
+    background: var(--low);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,217,122,0.4); }
+    50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(34,217,122,0); }
+  }
+
+  /* ── MAIN LAYOUT ── */
+  main { padding: 32px 40px; max-width: 1400px; margin: 0 auto; }
+
+  /* ── SECTION TITLES ── */
+  .section-label {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+
+  /* ── KPI STRIP ── */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .kpi-card.critical::before { background: var(--critical); }
+  .kpi-card.high::before { background: var(--high); }
+  .kpi-card.moderate::before { background: var(--moderate); }
+  .kpi-card.accent::before { background: var(--accent); }
+
+  .kpi-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .kpi-value {
+    font-size: 36px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1;
+  }
+
+  .kpi-card.critical .kpi-value { color: var(--critical); }
+  .kpi-card.high .kpi-value { color: var(--high); }
+  .kpi-card.moderate .kpi-value { color: var(--moderate); }
+  .kpi-card.accent .kpi-value { color: var(--accent); }
+
+  .kpi-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .kpi-icon {
+    position: absolute;
+    top: 16px; right: 16px;
+    font-size: 28px;
+    opacity: 0.15;
+  }
+
+  /* ── PROVINCE RISK CARDS ── */
+  .province-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+
+  .province-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .province-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .province-card.critical { border-color: rgba(255,59,92,0.3); }
+  .province-card.high { border-color: rgba(255,124,42,0.3); }
+  .province-card.moderate { border-color: rgba(245,197,24,0.3); }
+
+  .province-card-bg {
+    position: absolute;
+    inset: 0;
+    opacity: 0.04;
+    background: radial-gradient(circle at 80% 20%, currentColor, transparent 60%);
+    pointer-events: none;
+  }
+
+  .province-card.critical .province-card-bg { color: var(--critical); }
+  .province-card.high .province-card-bg { color: var(--high); }
+  .province-card.moderate .province-card-bg { color: var(--moderate); }
+
+  .province-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .province-name {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .risk-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .risk-badge.critical { background: var(--critical-bg); color: var(--critical); border: 1px solid rgba(255,59,92,0.3); }
+  .risk-badge.high { background: var(--high-bg); color: var(--high); border: 1px solid rgba(255,124,42,0.3); }
+  .risk-badge.moderate { background: var(--moderate-bg); color: var(--moderate); border: 1px solid rgba(245,197,24,0.3); }
+
+  /* Risk Gauge */
+  .gauge-row {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .gauge-number {
+    font-size: 48px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1;
+  }
+
+  .province-card.critical .gauge-number { color: var(--critical); }
+  .province-card.high .gauge-number { color: var(--high); }
+  .province-card.moderate .gauge-number { color: var(--moderate); }
+
+  .gauge-bar-wrap { flex: 1; }
+  .gauge-bar-track {
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+
+  .gauge-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s ease;
+  }
+
+  .province-card.critical .gauge-bar-fill { background: linear-gradient(90deg, #ff3b5c, #ff1744); }
+  .province-card.high .gauge-bar-fill { background: linear-gradient(90deg, #ff7c2a, #ff6b00); }
+  .province-card.moderate .gauge-bar-fill { background: linear-gradient(90deg, #f5c518, #e6b800); }
+
+  .gauge-label { font-size: 11px; color: var(--muted); }
+
+  /* Hazard Chips */
+  .hazard-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+
+  .hazard-chip {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .chip-dot.critical { background: var(--critical); }
+  .chip-dot.high { background: var(--high); }
+  .chip-dot.moderate { background: var(--moderate); }
+  .chip-dot.low { background: var(--low); }
+
+  .chip-val { font-family: 'JetBrains Mono', monospace; font-weight: 600; margin-left: auto; padding-left: 8px; }
+
+  /* Weather Row */
+  .weather-row {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    margin-bottom: 16px;
+  }
+
+  .wx-item { text-align: center; }
+  .wx-val { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 600; }
+  .wx-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+  .recommendation-box {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--text);
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+
+  .rec-icon { font-size: 16px; flex-shrink: 0; }
+
+  /* ── ALERT LOG TABLE ── */
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+
+  .table-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .table-title { font-size: 16px; font-weight: 600; }
+
+  .alert-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--critical-bg);
+    color: var(--critical);
+    border: 1px solid rgba(255,59,92,0.3);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left;
+    padding: 12px 24px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .td-mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  .td-pill {
+    display: inline-flex;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .td-pill.critical { background: var(--critical-bg); color: var(--critical); }
+  .td-pill.high { background: var(--high-bg); color: var(--high); }
+  .td-pill.moderate { background: var(--moderate-bg); color: var(--moderate); }
+  .td-pill.sent { background: rgba(79,142,247,0.1); color: var(--accent); }
+  .td-pill.warning { background: var(--high-bg); color: var(--high); }
+
+  /* ── ML MODEL TABLE ── */
+  .model-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .model-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .model-icon { font-size: 24px; width: 40px; text-align: center; }
+
+  .model-info { flex: 1; }
+  .model-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .model-method { font-size: 11px; color: var(--muted); }
+
+  .model-stats { display: flex; gap: 16px; }
+  .stat-item { text-align: right; }
+  .stat-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--low);
+  }
+  .stat-label { font-size: 10px; color: var(--muted); }
+
+  .acc-bar {
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+
+  .acc-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--low));
+    border-radius: 2px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--muted);
+    font-size: 12px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .footer-brand { font-weight: 600; color: var(--accent); }
+  .footer-sources { font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+
+  /* ── DATA SOURCES BAR ── */
+  .sources-strip {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+
+  .source-tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+  }
+
+  .section-divider {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .divider-line { flex: 1; height: 1px; background: var(--border); }
+
+  @media print {
+    header { position: static; }
+    .province-card:hover { transform: none; box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🛡️</div>
+    <div>
+      <div class="logo-text">True<span>Risk</span></div>
+      <div style="font-size:11px; color:var(--muted); margin-top:1px;">Multi-Hazard Intelligence Platform — Spain</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <div class="date-badge">📅 28 Jun 2026 · 10:00 UTC</div>
+    <div class="live-dot">Live</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- KPI STRIP -->
+  <div class="kpi-strip">
+    <div class="kpi-card critical">
+      <div class="kpi-icon">🚨</div>
+      <div class="kpi-label">Critical Provinces</div>
+      <div class="kpi-value">1</div>
+      <div class="kpi-sub">Valencia — Risk Score 78</div>
+    </div>
+    <div class="kpi-card high">
+      <div class="kpi-icon">⚠️</div>
+      <div class="kpi-label">High Risk Provinces</div>
+      <div class="kpi-value">1</div>
+      <div class="kpi-sub">Barcelona — Risk Score 56</div>
+    </div>
+    <div class="kpi-card moderate">
+      <div class="kpi-icon">🌡️</div>
+      <div class="kpi-label">Max Temperature</div>
+      <div class="kpi-value">39°C</div>
+      <div class="kpi-sub">Valencia — Heatwave Alert Active</div>
+    </div>
+    <div class="kpi-card accent">
+      <div class="kpi-icon">📡</div>
+      <div class="kpi-label">Active Data Sources</div>
+      <div class="kpi-value">16</div>
+      <div class="kpi-sub">AEMET · NASA FIRMS · IGN · SAIH</div>
+    </div>
+  </div>
+
+  <!-- PROVINCE CARDS -->
+  <div class="section-divider">
+    <div class="section-label">Province Risk Intelligence</div>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="province-grid">
+
+    <!-- VALENCIA -->
+    <div class="province-card critical">
+      <div class="province-card-bg"></div>
+      <div class="province-header">
+        <div class="province-name">🏖️ Valencia</div>
+        <div class="risk-badge critical">Critical</div>
+      </div>
+      <div class="gauge-row">
+        <div class="gauge-number">78</div>
+        <div class="gauge-bar-wrap">
+          <div class="gauge-bar-track"><div class="gauge-bar-fill" style="width:78%"></div></div>
+          <div class="gauge-label">Overall Risk Score / 100</div>
+        </div>
+      </div>
+      <div class="hazard-chips">
+        <div class="hazard-chip"><div class="chip-dot critical"></div> Heatwave <span class="chip-val" style="color:var(--critical)">85</span></div>
+        <div class="hazard-chip"><div class="chip-dot critical"></div> Flood <span class="chip-val" style="color:var(--critical)">72</span></div>
+        <div class="hazard-chip"><div class="chip-dot moderate"></div> Wildfire <span class="chip-val" style="color:var(--moderate)">40</span></div>
+        <div class="hazard-chip"><div class="chip-dot high"></div> AQI <span class="chip-val" style="color:var(--high)">65</span></div>
+      </div>
+      <div class="weather-row">
+        <div class="wx-item"><div class="wx-val" style="color:var(--critical)">39°C</div><div class="wx-label">Temp</div></div>
+        <div class="wx-item"><div class="wx-val">72%</div><div class="wx-label">Humidity</div></div>
+        <div class="wx-item"><div class="wx-val" style="color:var(--accent)">80mm</div><div class="wx-label">Rainfall</div></div>
+        <div class="wx-item"><div class="wx-val">25 km/h</div><div class="wx-label">Wind</div></div>
+      </div>
+      <div class="recommendation-box">
+        <div class="rec-icon">🚨</div>
+        <div><strong>Action Required:</strong> Prepare Emergency Kit and Avoid Coastal Areas. Alert sent 28-06-2026.</div>
+      </div>
+    </div>
+
+    <!-- BARCELONA -->
+    <div class="province-card high">
+      <div class="province-card-bg"></div>
+      <div class="province-header">
+        <div class="province-name">🏙️ Barcelona</div>
+        <div class="risk-badge high">High</div>
+      </div>
+      <div class="gauge-row">
+        <div class="gauge-number">56</div>
+        <div class="gauge-bar-wrap">
+          <div class="gauge-bar-track"><div class="gauge-bar-fill" style="width:56%"></div></div>
+          <div class="gauge-label">Overall Risk Score / 100</div>
+        </div>
+      </div>
+      <div class="hazard-chips">
+        <div class="hazard-chip"><div class="chip-dot moderate"></div> Heatwave <span class="chip-val" style="color:var(--moderate)">65</span></div>
+        <div class="hazard-chip"><div class="chip-dot moderate"></div> Flood <span class="chip-val" style="color:var(--moderate)">40</span></div>
+        <div class="hazard-chip"><div class="chip-dot low"></div> Wildfire <span class="chip-val" style="color:var(--low)">30</span></div>
+        <div class="hazard-chip"><div class="chip-dot high"></div> AQI <span class="chip-val" style="color:var(--high)">55</span></div>
+      </div>
+      <div class="weather-row">
+        <div class="wx-item"><div class="wx-val" style="color:var(--high)">32°C</div><div class="wx-label">Temp</div></div>
+        <div class="wx-item"><div class="wx-val">60%</div><div class="wx-label">Humidity</div></div>
+        <div class="wx-item"><div class="wx-val">5mm</div><div class="wx-label">Rainfall</div></div>
+        <div class="wx-item"><div class="wx-val">15 km/h</div><div class="wx-label">Wind</div></div>
+      </div>
+      <div class="recommendation-box">
+        <div class="rec-icon">⚠️</div>
+        <div><strong>Advisory:</strong> Avoid Outdoor Activities. Warning issued 28-06-2026.</div>
+      </div>
+    </div>
+
+    <!-- MADRID -->
+    <div class="province-card moderate">
+      <div class="province-card-bg"></div>
+      <div class="province-header">
+        <div class="province-name">🏛️ Madrid</div>
+        <div class="risk-badge moderate">Moderate</div>
+      </div>
+      <div class="gauge-row">
+        <div class="gauge-number">48</div>
+        <div class="gauge-bar-wrap">
+          <div class="gauge-bar-track"><div class="gauge-bar-fill" style="width:48%"></div></div>
+          <div class="gauge-label">Overall Risk Score / 100</div>
+        </div>
+      </div>
+      <div class="hazard-chips">
+        <div class="hazard-chip"><div class="chip-dot critical"></div> Heatwave <span class="chip-val" style="color:var(--critical)">82</span></div>
+        <div class="hazard-chip"><div class="chip-dot low"></div> Flood <span class="chip-val" style="color:var(--low)">25</span></div>
+        <div class="hazard-chip"><div class="chip-dot moderate"></div> Wildfire <span class="chip-val" style="color:var(--moderate)">48</span></div>
+        <div class="hazard-chip"><div class="chip-dot moderate"></div> AQI <span class="chip-val" style="color:var(--moderate)">42</span></div>
+      </div>
+      <div class="weather-row">
+        <div class="wx-item"><div class="wx-val" style="color:var(--high)">36°C</div><div class="wx-label">Temp</div></div>
+        <div class="wx-item"><div class="wx-val">55%</div><div class="wx-label">Humidity</div></div>
+        <div class="wx-item"><div class="wx-val">12mm</div><div class="wx-label">Rainfall</div></div>
+        <div class="wx-item"><div class="wx-val">18 km/h</div><div class="wx-label">Wind</div></div>
+      </div>
+      <div class="recommendation-box">
+        <div class="rec-icon">💧</div>
+        <div><strong>Precaution:</strong> Stay Hydrated. Monitor heatwave conditions throughout the day.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ALERT LOG -->
+  <div class="section-divider">
+    <div class="section-label">Alert Log — 28 June 2026</div>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="table-card" style="margin-bottom:32px;">
+    <div class="table-header">
+      <div class="table-title">Active Alerts & Warnings</div>
+      <div class="alert-count">2 Active Alerts</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Province</th>
+          <th>Risk Level</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="td-mono">28-06-2026</td>
+          <td><strong>Valencia</strong></td>
+          <td><span class="td-pill critical">Critical</span></td>
+          <td><span class="td-pill sent">✓ Alert Sent</span></td>
+          <td style="color:var(--muted);font-size:12px;">Emergency Kit · Avoid Coast</td>
+        </tr>
+        <tr>
+          <td class="td-mono">28-06-2026</td>
+          <td><strong>Barcelona</strong></td>
+          <td><span class="td-pill high">High</span></td>
+          <td><span class="td-pill warning">⚡ Warning Issued</span></td>
+          <td style="color:var(--muted);font-size:12px;">Avoid Outdoors</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ML MODELS -->
+  <div class="section-divider">
+    <div class="section-label">ML Model Performance</div>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="model-grid">
+    <div class="model-row">
+      <div class="model-icon">🌊</div>
+      <div class="model-info">
+        <div class="model-name">Flood Risk</div>
+        <div class="model-method">XGBoost · 23 Features</div>
+        <div class="acc-bar"><div class="acc-fill" style="width:89%"></div></div>
+      </div>
+      <div class="model-stats">
+        <div class="stat-item"><div class="stat-val">89%</div><div class="stat-label">Accuracy</div></div>
+        <div class="stat-item"><div class="stat-val">0.93</div><div class="stat-label">AUC-ROC</div></div>
+      </div>
+    </div>
+    <div class="model-row">
+      <div class="model-icon">🔥</div>
+      <div class="model-info">
+        <div class="model-name">Wildfire Risk</div>
+        <div class="model-method">RF + LightGBM · 20 Features</div>
+        <div class="acc-bar"><div class="acc-fill" style="width:91%"></div></div>
+      </div>
+      <div class="model-stats">
+        <div class="stat-item"><div class="stat-val">91%</div><div class="stat-label">Accuracy</div></div>
+        <div class="stat-item"><div class="stat-val">0.95</div><div class="stat-label">AUC-ROC</div></div>
+      </div>
+    </div>
+    <div class="model-row">
+      <div class="model-icon">🌵</div>
+      <div class="model-info">
+        <div class="model-name">Drought</div>
+        <div class="model-method">SPEI + LSTM · 6 Features</div>
+        <div class="acc-bar"><div class="acc-fill" style="width:86%"></div></div>
+      </div>
+      <div class="model-stats">
+        <div class="stat-item"><div class="stat-val">86%</div><div class="stat-label">Accuracy</div></div>
+        <div class="stat-item"><div class="stat-val">0.90</div><div class="stat-label">AUC-ROC</div></div>
+      </div>
+    </div>
+    <div class="model-row">
+      <div class="model-icon">🌡️</div>
+      <div class="model-info">
+        <div class="model-name">Heatwave</div>
+        <div class="model-method">XGBoost + WBGT · 18 Features</div>
+        <div class="acc-bar"><div class="acc-fill" style="width:88%"></div></div>
+      </div>
+      <div class="model-stats">
+        <div class="stat-item"><div class="stat-val">88%</div><div class="stat-label">Accuracy</div></div>
+        <div class="stat-item"><div class="stat-val">0.92</div><div class="stat-label">AUC-ROC</div></div>
+      </div>
+    </div>
+    <div class="model-row">
+      <div class="model-icon">🌍</div>
+      <div class="model-info">
+        <div class="model-name">Seismic</div>
+        <div class="model-method">Rule-Based · 8 Features</div>
+        <div class="acc-bar"><div class="acc-fill" style="width:92%"></div></div>
+      </div>
+      <div class="model-stats">
+        <div class="stat-item"><div class="stat-val">92%</div><div class="stat-label">Accuracy</div></div>
+        <div class="stat-item"><div class="stat-val">0.78</div><div class="stat-label">F1 Score</div></div>
+      </div>
+    </div>
+    <div class="model-row">
+      <div class="model-icon">🌬️</div>
+      <div class="model-info">
+        <div class="model-name">Windstorm</div>
+        <div class="model-method">Rule-Based · 14 Features</div>
+        <div class="acc-bar"><div class="acc-fill" style="width:91%"></div></div>
+      </div>
+      <div class="model-stats">
+        <div class="stat-item"><div class="stat-val">91%</div><div class="stat-label">Accuracy</div></div>
+        <div class="stat-item"><div class="stat-val">0.79</div><div class="stat-label">F1 Score</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA SOURCES -->
+  <div class="section-divider">
+    <div class="section-label">Active Data Sources</div>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="sources-strip">
+    <div class="source-tag">AEMET Weather</div>
+    <div class="source-tag">Open-Meteo</div>
+    <div class="source-tag">IGN Seismic</div>
+    <div class="source-tag">USGS</div>
+    <div class="source-tag">NASA FIRMS</div>
+    <div class="source-tag">Copernicus CAMS</div>
+    <div class="source-tag">Copernicus EFAS</div>
+    <div class="source-tag">Copernicus EMS</div>
+    <div class="source-tag">OpenAQ</div>
+    <div class="source-tag">SAIH Ebro</div>
+    <div class="source-tag">SAIH Segura</div>
+    <div class="source-tag">SAIH Júcar</div>
+    <div class="source-tag">MITECO Reservoirs</div>
+    <div class="source-tag">REE Energy Grid</div>
+    <div class="source-tag">ECMWF Seasonal</div>
+    <div class="source-tag">NASA POWER</div>
+  </div>
+
+</main>
+
+<footer>
+  <div>
+    <span class="footer-brand">TrueRisk</span> — AI-Powered Multi-Hazard Risk Intelligence Platform &nbsp;·&nbsp; Spain · 52 Provinces
+  </div>
+  <div class="footer-sources">
+    7 ML Models · 16 Data Sources · FastAPI + Next.js · PostgreSQL 16
+  </div>
+</footer>
+
+</body>
+</html>

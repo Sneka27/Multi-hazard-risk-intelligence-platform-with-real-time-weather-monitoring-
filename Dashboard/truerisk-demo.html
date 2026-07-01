@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TrueRisk — Multi-Hazard Early Warning, Spain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B1B2B;
+    --ink-2:#142943;
+    --paper:#F7F3EC;
+    --paper-dim:#ECE6D9;
+    --red:#D6432C;
+    --orange:#E8932A;
+    --yellow:#E0B23A;
+    --teal:#2A8C82;
+    --slate:#5B6B7A;
+    --slate-dim:#8C99A6;
+    --line: rgba(247,243,236,0.12);
+    --line-dark: rgba(11,27,43,0.12);
+    --display: 'Archivo Expanded', sans-serif;
+    --body: 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:var(--body);
+    width:100%;
+    overflow-x:hidden;
+  }
+  button{font-family:inherit; cursor:pointer; background:none; border:none; color:inherit;}
+  :focus-visible{outline:2px solid var(--teal); outline-offset:2px;}
+  ::selection{background:var(--teal); color:var(--ink);}
+
+  .app{
+    display:flex;
+    min-height:100vh;
+    max-width:1440px;
+    margin:0 auto;
+    background:var(--ink);
+  }
+
+  /* ---------- RAIL ---------- */
+  .rail{
+    width:248px;
+    flex-shrink:0;
+    border-right:1px solid var(--line);
+    padding:28px 16px 24px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+    position:sticky;
+    top:0;
+    height:100vh;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:0 8px 18px;
+    border-bottom:1px solid var(--line);
+  }
+  .brand-mark{
+    width:30px; height:30px;
+    border-radius:7px;
+    background:linear-gradient(135deg, var(--red), var(--orange));
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .brand-mark svg{width:16px; height:16px;}
+  .brand-text{display:flex; flex-direction:column; line-height:1.1;}
+  .brand-text strong{font-family:var(--display); font-size:15.5px; font-weight:700; letter-spacing:0.01em;}
+  .brand-text span{font-family:var(--mono); font-size:9.5px; color:var(--slate-dim); letter-spacing:0.06em; text-transform:uppercase;}
+
+  .nav-group-label{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--slate-dim);
+    padding:0 8px;
+    margin-bottom:2px;
+  }
+  .nav{display:flex; flex-direction:column; gap:2px;}
+  .nav-item{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    padding:9px 10px;
+    border-radius:8px;
+    font-size:13.5px;
+    font-weight:500;
+    color:var(--slate-dim);
+    text-align:left;
+    transition:background 0.15s, color 0.15s;
+    width:100%;
+  }
+  .nav-item .num{
+    font-family:var(--mono);
+    font-size:10.5px;
+    color:inherit;
+    opacity:0.55;
+    width:16px;
+  }
+  .nav-item:hover{background:rgba(247,243,236,0.05); color:var(--paper);}
+  .nav-item.active{
+    background:rgba(247,243,236,0.08);
+    color:var(--paper);
+  }
+  .nav-item.active .num{opacity:1; color:var(--orange);}
+  .nav-item.active::before{
+    content:'';
+  }
+
+  .rail-foot{
+    margin-top:auto;
+    padding-top:16px;
+    border-top:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .status-pill{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    font-family:var(--mono);
+    font-size:10.5px;
+    color:var(--slate-dim);
+    padding:0 8px;
+  }
+  .dot-live{
+    width:6px; height:6px; border-radius:50%;
+    background:var(--teal);
+    box-shadow:0 0 0 0 rgba(42,140,130,0.6);
+    animation:pulse 2s infinite;
+    flex-shrink:0;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(42,140,130,0.5);}
+    70%{box-shadow:0 0 0 6px rgba(42,140,130,0);}
+    100%{box-shadow:0 0 0 0 rgba(42,140,130,0);}
+  }
+
+  /* ---------- MAIN ---------- */
+  .main{
+    flex:1;
+    min-width:0;
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:18px 0 0 18px;
+    min-height:100vh;
+  }
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:22px 32px 18px;
+    border-bottom:1px solid var(--line-dark);
+  }
+  .topbar h1{
+    font-family:var(--display);
+    font-size:22px;
+    font-weight:700;
+    letter-spacing:-0.01em;
+  }
+  .topbar p{
+    font-size:12.5px;
+    color:var(--slate);
+    margin-top:3px;
+  }
+  .topbar-right{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--slate);
+  }
+  .clock-box{
+    text-align:right;
+    padding:7px 12px;
+    border:1px solid var(--line-dark);
+    border-radius:8px;
+    background:rgba(11,27,43,0.03);
+  }
+  .clock-box .t{font-size:13px; font-weight:600; color:var(--ink);}
+  .clock-box .d{font-size:9.5px; color:var(--slate-dim); text-transform:uppercase; letter-spacing:0.05em;}
+
+  .panel{
+    padding:28px 32px 60px;
+    animation:fadeIn 0.35s ease;
+  }
+  @keyframes fadeIn{
+    from{opacity:0; transform:translateY(6px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .panel[hidden]{display:none;}
+
+  .section-head{margin-bottom:22px;}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--red);
+    margin-bottom:6px;
+    display:block;
+  }
+  .section-head h2{
+    font-family:var(--display);
+    font-size:26px;
+    font-weight:700;
+    letter-spacing:-0.01em;
+    margin-bottom:6px;
+  }
+  .section-head p{
+    font-size:13.5px;
+    color:var(--slate);
+    max-width:640px;
+  }
+
+  /* ---------- GRID / CARD PRIMITIVES ---------- */
+  .grid{display:grid; gap:14px;}
+  .grid-4{grid-template-columns:repeat(4,1fr);}
+  .grid-3{grid-template-columns:repeat(3,1fr);}
+  .grid-2{grid-template-columns:repeat(2,1fr);}
+  .grid-12{grid-template-columns:repeat(12,1fr);}
+  .span-7{grid-column:span 7;}
+  .span-5{grid-column:span 5;}
+  .span-8{grid-column:span 8;}
+  .span-4{grid-column:span 4;}
+  .span-6{grid-column:span 6;}
+  .span-12{grid-column:span 12;}
+
+  .card{
+    background:#fff;
+    border:1px solid var(--line-dark);
+    border-radius:14px;
+    padding:18px 20px;
+  }
+  .card-title{
+    font-size:11px;
+    font-family:var(--mono);
+    text-transform:uppercase;
+    letter-spacing:0.07em;
+    color:var(--slate);
+    margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  /* KPI */
+  .kpi-card{
+    background:#fff;
+    border:1px solid var(--line-dark);
+    border-radius:14px;
+    padding:18px 18px 16px;
+    position:relative;
+    overflow:hidden;
+  }
+  .kpi-card::before{
+    content:'';
+    position:absolute; top:0; left:0; bottom:0; width:3px;
+  }
+  .kpi-card.c-red::before{background:var(--red);}
+  .kpi-card.c-orange::before{background:var(--orange);}
+  .kpi-card.c-teal::before{background:var(--teal);}
+  .kpi-card.c-slate::before{background:var(--slate);}
+  .kpi-label{font-size:11px; font-family:var(--mono); text-transform:uppercase; letter-spacing:0.06em; color:var(--slate); margin-bottom:8px;}
+  .kpi-value{font-family:var(--display); font-size:30px; font-weight:700; letter-spacing:-0.01em; display:flex; align-items:baseline; gap:6px;}
+  .kpi-value small{font-size:13px; font-family:var(--body); font-weight:600; color:var(--slate-dim);}
+  .kpi-sub{font-size:11.5px; color:var(--slate-dim); margin-top:6px;}
+  .trend{font-size:11px; font-weight:600; padding:2px 6px; border-radius:5px;}
+  .trend.up{color:var(--red); background:rgba(214,67,44,0.1);}
+  .trend.down{color:var(--teal); background:rgba(42,140,130,0.1);}
+  .trend.flat{color:var(--slate); background:rgba(91,107,122,0.1);}
+
+  /* RISK badge / pill */
+  .pill{
+    display:inline-flex; align-items:center; gap:5px;
+    font-family:var(--mono); font-size:10.5px; font-weight:600;
+    padding:3px 9px; border-radius:20px; letter-spacing:0.03em;
+  }
+  .pill.severe{background:rgba(214,67,44,0.12); color:var(--red);}
+  .pill.high{background:rgba(232,147,42,0.12); color:var(--orange);}
+  .pill.mod{background:rgba(224,178,58,0.14); color:#9c7a1f;}
+  .pill.low{background:rgba(42,140,130,0.12); color:var(--teal);}
+  .pill .dot{width:5px; height:5px; border-radius:50%; background:currentColor;}
+
+  /* ---------- DASHBOARD: hazard strip ---------- */
+  .hazard-strip{display:flex; gap:10px; overflow-x:auto; padding-bottom:4px;}
+  .hazard-chip{
+    flex:1 1 0; min-width:118px;
+    background:#fff; border:1px solid var(--line-dark); border-radius:12px;
+    padding:13px 14px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .hazard-chip .htop{display:flex; align-items:center; justify-content:space-between;}
+  .hazard-chip .hname{font-size:12px; font-weight:600;}
+  .hazard-chip .hicon{width:16px; height:16px; opacity:0.7;}
+  .hazard-chip .hscore{font-family:var(--display); font-size:22px; font-weight:700;}
+  .barwrap{height:5px; background:var(--paper-dim); border-radius:4px; overflow:hidden;}
+  .barfill{height:100%; border-radius:4px;}
+
+  /* ---------- LIVE MONITORING ---------- */
+  .source-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:11px 4px; border-bottom:1px solid var(--line-dark);
+    font-size:13px;
+  }
+  .source-row:last-child{border-bottom:none;}
+  .source-left{display:flex; align-items:center; gap:10px;}
+  .source-dot{width:7px; height:7px; border-radius:50%; flex-shrink:0;}
+  .source-name{font-weight:600;}
+  .source-meta{font-family:var(--mono); font-size:10.5px; color:var(--slate-dim);}
+  .source-val{font-family:var(--mono); font-size:13px; font-weight:600; text-align:right;}
+
+  .gauge-row{display:flex; align-items:center; gap:14px; padding:9px 0;}
+  .gauge-label{width:96px; font-size:12.5px; font-weight:500; color:var(--ink-2); flex-shrink:0;}
+  .gauge-track{flex:1; height:8px; background:var(--paper-dim); border-radius:6px; position:relative; overflow:hidden;}
+  .gauge-fill{height:100%; border-radius:6px;}
+  .gauge-num{width:54px; text-align:right; font-family:var(--mono); font-size:12px; font-weight:600; flex-shrink:0;}
+
+  /* AQI strip */
+  .aqi-strip{display:flex; border-radius:10px; overflow:hidden; height:10px; margin:14px 0 8px;}
+  .aqi-strip span{flex:1;}
+  .aqi-marker{position:relative; height:0;}
+  .aqi-needle{
+    position:absolute; top:-22px; width:2px; height:30px; background:var(--ink);
+  }
+  .aqi-needle::after{
+    content:''; position:absolute; top:-5px; left:-4px; width:10px; height:10px;
+    border-radius:50%; background:var(--ink);
+  }
+
+  /* ---------- PREDICTIONS ---------- */
+  .dial-card{
+    background:#fff; border:1px solid var(--line-dark); border-radius:14px;
+    padding:16px; display:flex; flex-direction:column; align-items:center; gap:10px;
+    text-align:center;
+  }
+  .dial-card .dname{font-size:12.5px; font-weight:600;}
+  .dial-card .dmethod{font-family:var(--mono); font-size:9.5px; color:var(--slate-dim); text-transform:uppercase; letter-spacing:0.04em;}
+  .dial-svg-wrap{position:relative; width:104px; height:64px;}
+  .dial-score{position:absolute; bottom:0; left:0; right:0; text-align:center; font-family:var(--display); font-size:22px; font-weight:700;}
+  .dial-foot{display:flex; gap:10px; font-family:var(--mono); font-size:10px; color:var(--slate-dim);}
+
+  .feat-bar-row{display:flex; align-items:center; gap:10px; padding:7px 0;}
+  .feat-name{width:168px; font-size:12px; color:var(--ink-2); flex-shrink:0;}
+  .feat-track{flex:1; height:7px; background:var(--paper-dim); border-radius:5px; overflow:hidden;}
+  .feat-fill{height:100%; background:linear-gradient(90deg, var(--teal), var(--orange));}
+  .feat-pct{width:40px; text-align:right; font-family:var(--mono); font-size:11px; color:var(--slate); flex-shrink:0;}
+
+  /* ---------- RISK INTELLIGENCE ---------- */
+  .score-hero{
+    display:flex; align-items:center; gap:28px;
+    background:linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 100%);
+    border-radius:16px; padding:26px 28px; color:var(--paper);
+  }
+  .score-ring-wrap{position:relative; width:140px; height:140px; flex-shrink:0;}
+  .score-ring-num{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .score-ring-num .n{font-family:var(--display); font-size:38px; font-weight:700;}
+  .score-ring-num .l{font-family:var(--mono); font-size:9.5px; color:var(--slate-dim); text-transform:uppercase; letter-spacing:0.07em;}
+  .score-hero-text h3{font-family:var(--display); font-size:18px; margin-bottom:5px;}
+  .score-hero-text p{font-size:12.5px; color:rgba(247,243,236,0.65); max-width:380px; line-height:1.5;}
+
+  .weight-bar{display:flex; height:34px; border-radius:8px; overflow:hidden; margin:14px 0;}
+  .weight-seg{display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:11px; font-weight:600; color:#fff;}
+  .legend-row{display:flex; gap:16px; flex-wrap:wrap; margin-top:8px;}
+  .legend-item{display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--slate);}
+  .legend-sw{width:9px; height:9px; border-radius:3px;}
+
+  .province-list-row{
+    display:flex; align-items:center; gap:12px; padding:9px 2px; border-bottom:1px solid var(--line-dark); font-size:13px;
+  }
+  .province-list-row:last-child{border-bottom:none;}
+  .province-rank{font-family:var(--mono); font-size:10.5px; color:var(--slate-dim); width:18px;}
+  .province-name{flex:1; font-weight:600;}
+  .province-bar{width:90px; height:6px; background:var(--paper-dim); border-radius:4px; overflow:hidden;}
+  .province-bar-fill{height:100%; border-radius:4px;}
+  .province-score{font-family:var(--mono); font-size:12px; font-weight:700; width:30px; text-align:right;}
+
+  /* ---------- MAP ---------- */
+  .map-shell{
+    background:var(--ink); border-radius:16px; padding:18px; position:relative; overflow:hidden;
+  }
+  .map-shell svg{width:100%; height:auto; display:block;}
+  .map-legend{
+    position:absolute; bottom:18px; left:18px;
+    background:rgba(11,27,43,0.85); border:1px solid rgba(247,243,236,0.12);
+    border-radius:10px; padding:10px 14px; font-size:11px; color:var(--paper);
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .map-legend-row{display:flex; align-items:center; gap:7px;}
+  .map-legend-sw{width:11px; height:11px; border-radius:3px;}
+  .map-tooltip-fixed{
+    position:absolute; top:18px; right:18px;
+    background:rgba(11,27,43,0.9); border:1px solid rgba(247,243,236,0.14);
+    border-radius:10px; padding:12px 16px; min-width:170px;
+    color:var(--paper);
+  }
+  .map-tooltip-fixed .tprov{font-family:var(--display); font-size:14px; font-weight:700; margin-bottom:3px;}
+  .map-tooltip-fixed .tscore{font-family:var(--mono); font-size:22px; font-weight:700; color:var(--orange);}
+  .map-tooltip-fixed .thaz{font-size:10.5px; color:var(--slate-dim); margin-top:2px;}
+  province{cursor:pointer; transition: opacity 0.15s, stroke-width 0.15s;}
+  province:hover{opacity:0.82; stroke:#fff; stroke-width:1.4;}
+
+  /* ---------- ALERTS ---------- */
+  .alert-card{
+    border:1px solid var(--line-dark); border-radius:13px; padding:15px 17px;
+    display:flex; gap:14px; align-items:flex-start; background:#fff;
+  }
+  .alert-bar{width:4px; border-radius:3px; align-self:stretch; flex-shrink:0;}
+  .alert-bar.severe{background:var(--red);}
+  .alert-bar.high{background:var(--orange);}
+  .alert-bar.mod{background:#cda52e;}
+  .alert-head{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .alert-title{font-weight:700; font-size:13.5px;}
+  .alert-time{font-family:var(--mono); font-size:10.5px; color:var(--slate-dim); white-space:nowrap;}
+  .alert-body{font-size:12.5px; color:var(--slate); margin-top:4px; line-height:1.5;}
+  .alert-tags{display:flex; gap:6px; margin-top:9px; flex-wrap:wrap;}
+
+  .channel-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
+  .channel-card{
+    border:1px solid var(--line-dark); border-radius:12px; padding:14px; text-align:center;
+    display:flex; flex-direction:column; align-items:center; gap:6px; background:#fff;
+  }
+  .channel-card .cicon{width:26px; height:26px; color:var(--ink-2);}
+  .channel-card .cname{font-size:12px; font-weight:600;}
+  .channel-card .cstatus{font-family:var(--mono); font-size:9.5px; color:var(--teal); text-transform:uppercase; letter-spacing:0.04em;}
+
+  .guide-step{display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--line-dark);}
+  .guide-step:last-child{border-bottom:none;}
+  .guide-num{font-family:var(--mono); font-size:11px; font-weight:700; color:var(--orange); width:22px; flex-shrink:0;}
+  .guide-text{font-size:13px; color:var(--ink-2); line-height:1.5;}
+  .guide-text strong{display:block; font-size:13px; margin-bottom:2px;}
+
+  /* ---------- REPORTS ---------- */
+  .chart-area{height:200px; position:relative;}
+  .legend-chip{display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--slate); margin-right:14px;}
+  .legend-chip .sw{width:9px; height:9px; border-radius:50%;}
+
+  .perf-table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  .perf-table th{
+    text-align:left; font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.05em;
+    color:var(--slate-dim); padding:0 10px 9px; border-bottom:1px solid var(--line-dark); font-weight:600;
+  }
+  .perf-table td{padding:10px 10px; border-bottom:1px solid var(--line-dark);}
+  .perf-table tr:last-child td{border-bottom:none;}
+  .perf-table td:first-child, .perf-table th:first-child{padding-left:0;}
+
+  .export-row{display:flex; gap:10px; margin-top:16px;}
+  .export-btn{
+    display:flex; align-items:center; gap:7px;
+    border:1px solid var(--line-dark); border-radius:9px; padding:9px 15px;
+    font-size:12.5px; font-weight:600; background:#fff; color:var(--ink);
+    transition: border-color 0.15s, transform 0.1s;
+  }
+  .export-btn:hover{border-color:var(--ink); transform:translateY(-1px);}
+  .export-btn svg{width:14px; height:14px;}
+
+  /* ---------- COMPARE ---------- */
+  .vs-header{
+    display:grid; grid-template-columns:1fr 64px 1fr; align-items:center;
+    gap:10px; margin-bottom:18px;
+  }
+  .vs-city-card{
+    border-radius:16px; padding:20px 22px; color:#fff; position:relative; overflow:hidden;
+  }
+  .vs-city-card.left{background:linear-gradient(135deg,#142943,#0B1B2B);}
+  .vs-city-card.right{background:linear-gradient(135deg,#7a2b6e,#4a1a45);}
+  .vs-city-eyebrow{font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.09em; opacity:0.6; margin-bottom:6px;}
+  .vs-city-name{font-family:var(--display); font-size:24px; font-weight:700; margin-bottom:10px;}
+  .vs-city-score{display:flex; align-items:baseline; gap:8px;}
+  .vs-city-score .n{font-family:var(--display); font-size:40px; font-weight:700;}
+  .vs-city-score .band{font-size:11px; font-family:var(--mono); padding:3px 9px; border-radius:20px; background:rgba(255,255,255,0.16);}
+  .vs-divider{
+    display:flex; align-items:center; justify-content:center; flex-direction:column; gap:4px;
+  }
+  .vs-divider .vtxt{font-family:var(--display); font-size:13px; font-weight:700; color:var(--slate-dim);}
+  .vs-divider .vline{width:1px; height:34px; background:var(--line-dark);}
+
+  .compare-row{
+    display:grid; grid-template-columns:1fr 130px 46px 130px 1fr;
+    align-items:center; gap:10px; padding:11px 2px; border-bottom:1px solid var(--line-dark);
+  }
+  .compare-row:last-child{border-bottom:none;}
+  .cmp-bar-track{height:9px; background:var(--paper-dim); border-radius:5px; overflow:hidden; display:flex; justify-content:flex-end;}
+  .cmp-bar-track.right-side{justify-content:flex-start;}
+  .cmp-bar-fill{height:100%; border-radius:5px;}
+  .cmp-label{
+    text-align:center; font-size:12px; font-weight:600; color:var(--ink-2);
+  }
+  .cmp-val{font-family:var(--mono); font-size:12px; font-weight:700; width:130px;}
+  .cmp-val.left-val{text-align:right;}
+  .cmp-val.right-val{text-align:left;}
+
+  .radar-wrap{display:flex; justify-content:center; padding:10px 0;}
+
+  /* responsive */
+  @media (max-width: 980px){
+    .rail{display:none;}
+    .main{border-radius:0;}
+    .grid-4{grid-template-columns:repeat(2,1fr);}
+    .grid-3{grid-template-columns:repeat(2,1fr);}
+    .grid-2{grid-template-columns:1fr;}
+    .span-7,.span-5,.span-8,.span-4,.span-6{grid-column:span 12;}
+    .channel-grid{grid-template-columns:repeat(2,1fr);}
+    .score-hero{flex-direction:column; text-align:center;}
+    .vs-header{grid-template-columns:1fr; gap:14px;}
+    .vs-divider{flex-direction:row;}
+    .vs-divider .vline{width:34px; height:1px;}
+    .compare-row{grid-template-columns:1fr; gap:4px; text-align:center; padding:14px 2px;}
+    .cmp-bar-track, .cmp-bar-track.right-side{justify-content:flex-start;}
+    .cmp-val.left-val, .cmp-val.right-val{text-align:center; width:100%;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
+  }
+
+  /* mobile tab bar */
+  .mobile-tabs{
+    display:none;
+    overflow-x:auto;
+    gap:6px;
+    padding:10px 14px;
+    background:var(--ink);
+    border-bottom:1px solid var(--line);
+  }
+  .mobile-tabs button{
+    font-size:11.5px; font-weight:600; color:var(--slate-dim);
+    padding:7px 12px; border-radius:20px; white-space:nowrap; flex-shrink:0;
+    border:1px solid var(--line);
+  }
+  .mobile-tabs button.active{background:var(--paper); color:var(--ink); border-color:var(--paper);}
+  @media (max-width:980px){
+    .mobile-tabs{display:flex;}
+  }
+</style>
+</head>
+<body>
+
+<div class="mobile-tabs" id="mobileTabs"></div>
+
+<div class="app">
+  <!-- ===== LEFT RAIL ===== -->
+  <nav class="rail">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 9v6l9 7 9-7V9l-9-7z" stroke="#0B1B2B" stroke-width="2" stroke-linejoin="round"/><path d="M12 8v5M12 16v.5" stroke="#0B1B2B" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="brand-text">
+        <strong>TrueRisk</strong>
+        <span>España · v2.4</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="nav-group-label">Operator Console</div>
+      <div class="nav" id="navList"></div>
+    </div>
+
+    <div class="rail-foot">
+      <div class="status-pill"><span class="dot-live"></span> 16 SOURCES SYNCED</div>
+      <div class="status-pill" id="railClock">LAST SYNC —</div>
+    </div>
+  </nav>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="pageTitle">Dashboard</h1>
+        <p id="pageSubtitle">National overview &amp; key risk indicators</p>
+      </div>
+      <div class="topbar-right">
+        <div class="clock-box">
+          <div class="t" id="liveClock">--:--:--</div>
+          <div class="d">Madrid time</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== 1. DASHBOARD ===================== -->
+    <section class="panel" data-panel="dashboard">
+      <div class="section-head">
+        <span class="eyebrow">01 · Overview</span>
+        <h2>National Risk Dashboard</h2>
+        <p>A single screen for what's happening across all 52 provinces right now — composite scores, active alerts, and which hazard is driving them.</p>
+      </div>
+
+      <div class="grid grid-4" style="margin-bottom:16px;">
+        <div class="kpi-card c-red">
+          <div class="kpi-label">National Risk Index</div>
+          <div class="kpi-value">62<small>/100</small></div>
+          <div class="kpi-sub"><span class="trend up">▲ 8 pts</span> vs. yesterday</div>
+        </div>
+        <div class="kpi-card c-orange">
+          <div class="kpi-label">Active Alerts</div>
+          <div class="kpi-value">14</div>
+          <div class="kpi-sub">3 severe · 6 high · 5 moderate</div>
+        </div>
+        <div class="kpi-card c-slate">
+          <div class="kpi-label">Provinces Monitored</div>
+          <div class="kpi-value">52<small>/52</small></div>
+          <div class="kpi-sub">All feeds reporting normally</div>
+        </div>
+        <div class="kpi-card c-teal">
+          <div class="kpi-label">Data Freshness</div>
+          <div class="kpi-value">96<small>%</small></div>
+          <div class="kpi-sub">16/16 sources synced this hour</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-title">Hazard Snapshot — Highest Province Score per Model</div>
+        <div class="hazard-strip" id="hazardStrip"></div>
+      </div>
+
+      <div class="grid grid-12">
+        <div class="span-7 card">
+          <div class="card-title">Top 8 Provinces by Composite Risk</div>
+          <div id="topProvinces"></div>
+        </div>
+        <div class="span-5 card">
+          <div class="card-title">Why the Index Moved Today</div>
+          <div class="guide-step">
+            <div class="guide-num">①</div>
+            <div class="guide-text"><strong>Heavy rainfall, Mediterranean basins</strong>AEMET red alert issued for Valencia &amp; Alicante; SAIH gauges show river levels rising fast.</div>
+          </div>
+          <div class="guide-step">
+            <div class="guide-num">②</div>
+            <div class="guide-text"><strong>Active wildfire hotspots, Andalucía</strong>NASA FIRMS detected 6 new VIIRS hotspots near Huelva in the last 24h.</div>
+          </div>
+          <div class="guide-step">
+            <div class="guide-num">③</div>
+            <div class="guide-text"><strong>Reservoir levels easing in the north</strong>MITECO data shows the Duero and Cantábrico basins above seasonal average.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 2. LIVE MONITORING ===================== -->
+    <section class="panel" data-panel="monitoring" hidden>
+      <div class="section-head">
+        <span class="eyebrow">02 · Live Feed</span>
+        <h2>Live Monitoring — Weather &amp; Air Quality</h2>
+        <p>Raw readings as they arrive from AEMET, Open-Meteo, OpenAQ and Copernicus CAMS, refreshed continuously.</p>
+      </div>
+
+      <div class="grid grid-12">
+        <div class="span-7 card">
+          <div class="card-title">Live Data Sources <span class="pill low"><span class="dot"></span>16 connected</span></div>
+          <div class="source-row">
+            <div class="source-left"><span class="source-dot" style="background:var(--teal)"></span><div><div class="source-name">AEMET</div><div class="source-meta">CAP alerts · weather obs</div></div></div>
+            <div class="source-val">Synced 2m ago</div>
+          </div>
+          <div class="source-row">
+            <div class="source-left"><span class="source-dot" style="background:var(--teal)"></span><div><div class="source-name">Open-Meteo</div><div class="source-meta">Hourly &amp; ensemble forecast</div></div></div>
+            <div class="source-val">Synced 4m ago</div>
+          </div>
+          <div class="source-row">
+            <div class="source-left"><span class="source-dot" style="background:var(--teal)"></span><div><div class="source-name">NASA FIRMS</div><div class="source-meta">VIIRS / MODIS hotspots</div></div></div>
+            <div class="source-val">Synced 11m ago</div>
+          </div>
+          <div class="source-row">
+            <div class="source-left"><span class="source-dot" style="background:var(--orange)"></span><div><div class="source-name">SAIH — Júcar</div><div class="source-meta">River gauge network</div></div></div>
+            <div class="source-val">Synced 1m ago</div>
+          </div>
+          <div class="source-row">
+            <div class="source-left"><span class="source-dot" style="background:var(--teal)"></span><div><div class="source-name">OpenAQ</div><div class="source-meta">Ground sensors, 25km radius</div></div></div>
+            <div class="source-val">Synced 6m ago</div>
+          </div>
+          <div class="source-row">
+            <div class="source-left"><span class="source-dot" style="background:var(--teal)"></span><div><div class="source-name">Copernicus CAMS</div><div class="source-meta">Air quality forecast</div></div></div>
+            <div class="source-val">Synced 18m ago</div>
+          </div>
+          <div class="source-row">
+            <div class="source-left"><span class="source-dot" style="background:var(--teal)"></span><div><div class="source-name">REE</div><div class="source-meta">Grid demand &amp; generation</div></div></div>
+            <div class="source-val">Synced 3m ago</div>
+          </div>
+        </div>
+
+        <div class="span-5" style="display:flex; flex-direction:column; gap:14px;">
+          <div class="card">
+            <div class="card-title">Weather Now — Valencia</div>
+            <div class="gauge-row"><div class="gauge-label">Precipitation</div><div class="gauge-track"><div class="gauge-fill" style="width:88%; background:var(--red);"></div></div><div class="gauge-num">61 mm</div></div>
+            <div class="gauge-row"><div class="gauge-label">Wind gust</div><div class="gauge-track"><div class="gauge-fill" style="width:54%; background:var(--orange);"></div></div><div class="gauge-num">58 km/h</div></div>
+            <div class="gauge-row"><div class="gauge-label">Humidity</div><div class="gauge-track"><div class="gauge-fill" style="width:91%; background:var(--teal);"></div></div><div class="gauge-num">91 %</div></div>
+            <div class="gauge-row"><div class="gauge-label">Temperature</div><div class="gauge-track"><div class="gauge-fill" style="width:46%; background:var(--yellow);"></div></div><div class="gauge-num">19 °C</div></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Air Quality Index — Madrid</div>
+            <div style="font-family:var(--display); font-size:32px; font-weight:700;">63 <small style="font-family:var(--body); font-size:13px; color:var(--slate-dim); font-weight:600;">moderate</small></div>
+            <div class="aqi-strip">
+              <span style="background:var(--teal)"></span><span style="background:var(--yellow)"></span><span style="background:var(--orange)"></span><span style="background:var(--red)"></span><span style="background:#7a2b6e"></span>
+            </div>
+            <div class="aqi-marker"><div class="aqi-needle" style="left:38%;"></div></div>
+            <div style="display:flex; justify-content:space-between; font-family:var(--mono); font-size:9.5px; color:var(--slate-dim); margin-top:18px;">
+              <span>GOOD</span><span>MODERATE</span><span>POOR</span><span>SEVERE</span><span>HAZARD</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 3. AI PREDICTIONS ===================== -->
+    <section class="panel" data-panel="predictions" hidden>
+      <div class="section-head">
+        <span class="eyebrow">03 · Forecast Models</span>
+        <h2>AI Predictions — Hazard Risk Scores</h2>
+        <p>Seven hazard-specific models, each producing an independent 0–100 score. Shown here for Valencia province, next 48h.</p>
+      </div>
+
+      <div class="grid grid-4" id="dialGrid" style="margin-bottom:16px;"></div>
+
+      <div class="grid grid-12">
+        <div class="span-7 card">
+          <div class="card-title">Temporal Fusion Transformer — 5-Day Flood Risk Forecast</div>
+          <svg viewBox="0 0 560 200" style="width:100%; height:190px;">
+            <line x1="40" y1="20" x2="40" y2="170" stroke="#5B6B7A" stroke-width="1" opacity="0.3"/>
+            <line x1="40" y1="170" x2="540" y2="170" stroke="#5B6B7A" stroke-width="1" opacity="0.3"/>
+            <text x="10" y="24" font-family="JetBrains Mono" font-size="9" fill="#8C99A6">100</text>
+            <text x="10" y="98" font-family="JetBrains Mono" font-size="9" fill="#8C99A6">50</text>
+            <text x="18" y="172" font-family="JetBrains Mono" font-size="9" fill="#8C99A6">0</text>
+            <polyline points="60,150 130,140 200,120 270,80 340,55 410,40 480,32" fill="none" stroke="#2A8C82" stroke-width="2.5"/>
+            <polygon points="340,55 410,40 480,32 480,170 340,170" fill="#D6432C" opacity="0.08"/>
+            <polyline points="340,55 410,40 480,32" fill="none" stroke="#D6432C" stroke-width="2.5" stroke-dasharray="5,4"/>
+            <circle cx="60" cy="150" r="3.5" fill="#2A8C82"/><circle cx="130" cy="140" r="3.5" fill="#2A8C82"/><circle cx="200" cy="120" r="3.5" fill="#2A8C82"/><circle cx="270" cy="80" r="3.5" fill="#2A8C82"/>
+            <circle cx="340" cy="55" r="3.5" fill="#D6432C"/><circle cx="410" cy="40" r="3.5" fill="#D6432C"/><circle cx="480" cy="32" r="3.5" fill="#D6432C"/>
+            <text x="50" y="186" font-family="JetBrains Mono" font-size="9" fill="#5B6B7A">Mon</text>
+            <text x="120" y="186" font-family="JetBrains Mono" font-size="9" fill="#5B6B7A">Tue</text>
+            <text x="190" y="186" font-family="JetBrains Mono" font-size="9" fill="#5B6B7A">Wed</text>
+            <text x="260" y="186" font-family="JetBrains Mono" font-size="9" fill="#5B6B7A">Thu (today)</text>
+            <text x="400" y="186" font-family="JetBrains Mono" font-size="9" fill="#D6432C">Forecast →</text>
+          </svg>
+          <div style="display:flex; gap:16px; margin-top:6px;">
+            <span class="legend-chip"><span class="sw" style="background:#2A8C82"></span>Observed</span>
+            <span class="legend-chip"><span class="sw" style="background:#D6432C"></span>TFT forecast</span>
+          </div>
+        </div>
+
+        <div class="span-5 card">
+          <div class="card-title">Why this score — Flood, Valencia (89% accuracy model)</div>
+          <div class="feat-bar-row"><div class="feat-name">72h precipitation accum.</div><div class="feat-track"><div class="feat-fill" style="width:91%"></div></div><div class="feat-pct">0.31</div></div>
+          <div class="feat-bar-row"><div class="feat-name">Soil moisture trend</div><div class="feat-track"><div class="feat-fill" style="width:64%"></div></div><div class="feat-pct">0.22</div></div>
+          <div class="feat-bar-row"><div class="feat-name">River discharge (EFAS)</div><div class="feat-track"><div class="feat-fill" style="width:58%"></div></div><div class="feat-pct">0.19</div></div>
+          <div class="feat-bar-row"><div class="feat-name">Historical flood zone (ARPSI)</div><div class="feat-track"><div class="feat-fill" style="width:40%"></div></div><div class="feat-pct">0.14</div></div>
+          <div class="feat-bar-row"><div class="feat-name">Pressure dynamics</div><div class="feat-track"><div class="feat-fill" style="width:25%"></div></div><div class="feat-pct">0.09</div></div>
+          <div class="feat-bar-row"><div class="feat-name">Reservoir capacity nearby</div><div class="feat-track"><div class="feat-fill" style="width:14%"></div></div><div class="feat-pct">0.05</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 4. RISK INTELLIGENCE ===================== -->
+    <section class="panel" data-panel="intelligence" hidden>
+      <div class="section-head">
+        <span class="eyebrow">04 · Composite Scoring</span>
+        <h2>Risk Intelligence — Overall Score &amp; Classification</h2>
+        <p>How the seven hazard scores combine into one number, and what that number means for a given province.</p>
+      </div>
+
+      <div class="score-hero" style="margin-bottom:18px;">
+        <div class="score-ring-wrap">
+          <svg viewBox="0 0 140 140" width="140" height="140">
+            <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(247,243,236,0.12)" stroke-width="12"/>
+            <circle cx="70" cy="70" r="60" fill="none" stroke="#E8932A" stroke-width="12" stroke-linecap="round"
+              stroke-dasharray="377" stroke-dashoffset="113" transform="rotate(-90 70 70)"/>
+          </svg>
+          <div class="score-ring-num"><div class="n">70</div><div class="l">HIGH RISK</div></div>
+        </div>
+        <div class="score-hero-text">
+          <h3>Valencia — Province Code 46</h3>
+          <p>Composite score of 70/100, classified <strong style="color:#E8932A;">High</strong>. Driven primarily by flood risk (89), with elevated wildfire (52) and heatwave (48) as secondary contributors. Last updated 6 minutes ago.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-12">
+        <div class="span-6 card">
+          <div class="card-title">Composite Weighting Formula</div>
+          <div class="weight-bar">
+            <div class="weight-seg" style="width:40%; background:#0B1B2B;">40%</div>
+            <div class="weight-seg" style="width:25%; background:#2A8C82;">25%</div>
+            <div class="weight-seg" style="width:20%; background:#E8932A;">20%</div>
+            <div class="weight-seg" style="width:15%; background:#D6432C;">15%</div>
+          </div>
+          <div class="legend-row">
+            <div class="legend-item"><span class="legend-sw" style="background:#0B1B2B"></span>Weather severity</div>
+            <div class="legend-item"><span class="legend-sw" style="background:#2A8C82"></span>Vulnerability</div>
+            <div class="legend-item"><span class="legend-sw" style="background:#E8932A"></span>Geographic risk</div>
+            <div class="legend-item"><span class="legend-sw" style="background:#D6432C"></span>Pattern analysis</div>
+          </div>
+        </div>
+        <div class="span-6 card">
+          <div class="card-title">Classification Bands</div>
+          <div class="province-list-row"><div class="province-rank">—</div><div class="province-name">Low</div><div class="province-bar"><div class="province-bar-fill" style="width:25%; background:var(--teal);"></div></div><div class="province-score">0–29</div></div>
+          <div class="province-list-row"><div class="province-rank">—</div><div class="province-name">Moderate</div><div class="province-bar"><div class="province-bar-fill" style="width:50%; background:var(--yellow);"></div></div><div class="province-score">30–54</div></div>
+          <div class="province-list-row"><div class="province-rank">—</div><div class="province-name">High</div><div class="province-bar"><div class="province-bar-fill" style="width:75%; background:var(--orange);"></div></div><div class="province-score">55–74</div></div>
+          <div class="province-list-row"><div class="province-rank">—</div><div class="province-name">Severe</div><div class="province-bar"><div class="province-bar-fill" style="width:95%; background:var(--red);"></div></div><div class="province-score">75–100</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 5. INTERACTIVE MAP ===================== -->
+    <section class="panel" data-panel="map" hidden>
+      <div class="section-head">
+        <span class="eyebrow">05 · Spatial View</span>
+        <h2>Interactive Map — Spain by Province</h2>
+        <p>Click any province to inspect its current composite score and dominant hazard. Colour encodes risk band.</p>
+      </div>
+
+      <div class="map-shell">
+        <div class="map-tooltip-fixed" id="mapTooltip">
+          <div class="tprov">Valencia</div>
+          <div class="tscore">70</div>
+          <div class="thaz">Dominant hazard: Flood</div>
+        </div>
+        <svg viewBox="0 0 600 460" id="spainMap">
+          <!-- stylised province blocks standing in for real GeoJSON boundaries -->
+          <g id="provinceGroup"></g>
+        </svg>
+        <div class="map-legend">
+          <div class="map-legend-row"><span class="map-legend-sw" style="background:#2A8C82"></span>Low (0–29)</div>
+          <div class="map-legend-row"><span class="map-legend-sw" style="background:#E0B23A"></span>Moderate (30–54)</div>
+          <div class="map-legend-row"><span class="map-legend-sw" style="background:#E8932A"></span>High (55–74)</div>
+          <div class="map-legend-row"><span class="map-legend-sw" style="background:#D6432C"></span>Severe (75–100)</div>
+        </div>
+      </div>
+      <p style="font-size:11.5px; color:var(--slate); margin-top:10px;">Demo note: tiles are stylised placeholders representing province geometry. The production map uses MapLibre GL with real IGN boundary data.</p>
+    </section>
+
+    <!-- ===================== 6. ALERTS ===================== -->
+    <section class="panel" data-panel="alerts" hidden>
+      <div class="section-head">
+        <span class="eyebrow">06 · Notify &amp; Guide</span>
+        <h2>Alerts &amp; Emergency Guidance</h2>
+        <p>What gets sent, through which channel, and the safety steps a resident sees alongside each alert.</p>
+      </div>
+
+      <div class="grid grid-12" style="margin-bottom:16px;">
+        <div class="span-7" style="display:flex; flex-direction:column; gap:10px;">
+          <div class="alert-card">
+            <div class="alert-bar severe"></div>
+            <div style="flex:1;">
+              <div class="alert-head"><div class="alert-title">Red Alert — Torrential Rain, Valencia &amp; Alicante</div><div class="alert-time">14 min ago</div></div>
+              <div class="alert-body">AEMET CAP feed: rainfall rates exceeding 60mm/h expected through tonight. River gauges on the Júcar basin already trending upward.</div>
+              <div class="alert-tags"><span class="pill severe"><span class="dot"></span>Flood</span><span class="pill severe"><span class="dot"></span>Severe</span></div>
+            </div>
+          </div>
+          <div class="alert-card">
+            <div class="alert-bar high"></div>
+            <div style="flex:1;">
+              <div class="alert-head"><div class="alert-title">Wildfire Hotspots Detected — Huelva</div><div class="alert-time">52 min ago</div></div>
+              <div class="alert-body">NASA FIRMS VIIRS pass found 6 new active fire points. Wind direction favors spread toward populated areas near Almonte.</div>
+              <div class="alert-tags"><span class="pill high"><span class="dot"></span>Wildfire</span><span class="pill high"><span class="dot"></span>High</span></div>
+            </div>
+          </div>
+          <div class="alert-card">
+            <div class="alert-bar mod"></div>
+            <div style="flex:1;">
+              <div class="alert-head"><div class="alert-title">Reservoir Levels Below Seasonal Average — Sur Basin</div><div class="alert-time">3 hr ago</div></div>
+              <div class="alert-body">MITECO weekly update shows reservoirs at 41% capacity, continuing a downward trend tracked since March.</div>
+              <div class="alert-tags"><span class="pill mod"><span class="dot"></span>Drought</span><span class="pill mod"><span class="dot"></span>Moderate</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="span-5 card">
+          <div class="card-title">Emergency Guidance — Flood, Severe</div>
+          <div class="guide-step"><div class="guide-num">①</div><div class="guide-text"><strong>Move valuables &amp; vehicles to higher ground</strong>Avoid underground parking and basement storage.</div></div>
+          <div class="guide-step"><div class="guide-num">②</div><div class="guide-text"><strong>Do not cross flooded roads</strong>30cm of moving water can move a car.</div></div>
+          <div class="guide-step"><div class="guide-num">③</div><div class="guide-text"><strong>Know your nearest evacuation route</strong>Personalized route shown on your profile map.</div></div>
+          <div class="guide-step"><div class="guide-num">④</div><div class="guide-text"><strong>Keep phone charged, follow official channels</strong>112 and AEMET for verified updates only.</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Notification Channels</div>
+        <div class="channel-grid">
+          <div class="channel-card"><svg class="cicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2a7 7 0 0 0-7 7v4l-2 4h18l-2-4V9a7 7 0 0 0-7-7z"/><path d="M9 21a3 3 0 0 0 6 0"/></svg><div class="cname">Web Push</div><div class="cstatus">● Active</div></div>
+          <div class="channel-card"><svg class="cicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6l9 7 9-7"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg><div class="cname">Email · Resend</div><div class="cstatus">● Active</div></div>
+          <div class="channel-card"><svg class="cicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M10 18h4"/></svg><div class="cname">SMS · Twilio</div><div class="cstatus">● Active</div></div>
+          <div class="channel-card"><svg class="cicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 5L2 12l7 2.5L21 5z"/><path d="M9 14.5V20l3.5-4"/></svg><div class="cname">Telegram</div><div class="cstatus">● Active</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 7. REPORTS ===================== -->
+    <section class="panel" data-panel="reports" hidden>
+      <div class="section-head">
+        <span class="eyebrow">07 · Export &amp; Review</span>
+        <h2>Reports &amp; Analytics</h2>
+        <p>Forecast charts, model performance, and one-click export for stakeholder or insurer review.</p>
+      </div>
+
+      <div class="grid grid-12" style="margin-bottom:16px;">
+        <div class="span-7 card">
+          <div class="card-title">7-Day Composite Risk Trend — Valencia</div>
+          <svg viewBox="0 0 560 200" style="width:100%; height:190px;">
+            <line x1="40" y1="20" x2="40" y2="170" stroke="#5B6B7A" stroke-width="1" opacity="0.3"/>
+            <line x1="40" y1="170" x2="540" y2="170" stroke="#5B6B7A" stroke-width="1" opacity="0.3"/>
+            <text x="10" y="24" font-family="JetBrains Mono" font-size="9" fill="#8C99A6">100</text>
+            <text x="10" y="98" font-family="JetBrains Mono" font-size="9" fill="#8C99A6">50</text>
+            <text x="18" y="172" font-family="JetBrains Mono" font-size="9" fill="#8C99A6">0</text>
+            <polygon points="60,148 130,142 200,130 270,100 340,75 410,55 480,40 480,170 60,170" fill="#D6432C" opacity="0.07"/>
+            <polyline points="60,148 130,142 200,130 270,100 340,75 410,55 480,40" fill="none" stroke="#D6432C" stroke-width="2.5"/>
+            <circle cx="60" cy="148" r="3.5" fill="#D6432C"/><circle cx="130" cy="142" r="3.5" fill="#D6432C"/><circle cx="200" cy="130" r="3.5" fill="#D6432C"/>
+            <circle cx="270" cy="100" r="3.5" fill="#D6432C"/><circle cx="340" cy="75" r="3.5" fill="#D6432C"/><circle cx="410" cy="55" r="3.5" fill="#D6432C"/><circle cx="480" cy="40" r="3.5" fill="#D6432C"/>
+            <text x="48" y="186" font-family="JetBrains Mono" font-size="9" fill="#5B6B7A">Mon</text>
+            <text x="190" y="186" font-family="JetBrains Mono" font-size="9" fill="#5B6B7A">Wed</text>
+            <text x="330" y="186" font-family="JetBrains Mono" font-size="9" fill="#5B6B7A">Fri</text>
+            <text x="465" y="186" font-family="JetBrains Mono" font-size="9" fill="#5B6B7A">Sun</text>
+          </svg>
+        </div>
+        <div class="span-5 card">
+          <div class="card-title">Export</div>
+          <p style="font-size:12.5px; color:var(--slate); margin-bottom:14px; line-height:1.5;">Download the current province report as a formatted PDF for insurers, or raw CSV for further analysis.</p>
+          <div class="export-row" style="margin-top:0; flex-direction:column;">
+            <button class="export-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Download PDF report</button>
+            <button class="export-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Download CSV data</button>
+          </div>
+          <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--line-dark); font-family:var(--mono); font-size:10.5px; color:var(--slate-dim);">
+            Report generated · 28 Jun 2026 · 16 sources · 7 models
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Model Performance — All Hazard Models</div>
+        <table class="perf-table">
+          <thead><tr><th>Hazard</th><th>Method</th><th>Features</th><th>Accuracy</th><th>F1</th><th>AUC-ROC</th></tr></thead>
+          <tbody>
+            <tr><td>Flood</td><td>XGBoost</td><td>23</td><td>89%</td><td>0.84</td><td>0.93</td></tr>
+            <tr><td>Wildfire</td><td>RF + LightGBM</td><td>20</td><td>91%</td><td>0.87</td><td>0.95</td></tr>
+            <tr><td>Drought</td><td>SPEI + LSTM</td><td>6 (90-day seq)</td><td>86%</td><td>0.81</td><td>0.90</td></tr>
+            <tr><td>Heatwave</td><td>XGBoost + WBGT</td><td>18</td><td>88%</td><td>0.83</td><td>0.92</td></tr>
+            <tr><td>Seismic</td><td>Rule-based</td><td>8</td><td>92%</td><td>0.78</td><td>—</td></tr>
+            <tr><td>Cold Wave</td><td>Rule-based</td><td>14</td><td>90%</td><td>0.76</td><td>—</td></tr>
+            <tr><td>Windstorm</td><td>Rule-based</td><td>14</td><td>91%</td><td>0.79</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===================== 8. COMPARE ===================== -->
+    <section class="panel" data-panel="compare" hidden>
+      <div class="section-head">
+        <span class="eyebrow">08 · Side by Side</span>
+        <h2>Compare Autonomous Communities — Catalonia vs. Comunidad de Madrid</h2>
+        <p>Same seven hazard models, two autonomous communities (Spain's "state"-level regions). Scores are population-weighted averages across each region's provinces.</p>
+      </div>
+
+      <div class="vs-header">
+        <div class="vs-city-card left">
+          <div class="vs-city-eyebrow">Autonomous Community · ES-CT</div>
+          <div class="vs-city-name">Catalonia</div>
+          <div class="vs-city-score"><span class="n">51</span><span class="band">MODERATE</span></div>
+        </div>
+        <div class="vs-divider">
+          <div class="vline"></div>
+          <div class="vtxt">VS</div>
+          <div class="vline"></div>
+        </div>
+        <div class="vs-city-card right">
+          <div class="vs-city-eyebrow">Autonomous Community · ES-MD</div>
+          <div class="vs-city-name">Comunidad de Madrid</div>
+          <div class="vs-city-score"><span class="n">41</span><span class="band">MODERATE</span></div>
+        </div>
+      </div>
+
+      <div class="grid grid-12">
+        <div class="span-7 card">
+          <div class="card-title">Hazard-by-Hazard Score (0–100)</div>
+          <div id="compareRows"></div>
+        </div>
+        <div class="span-5 card">
+          <div class="card-title">Risk Shape — Radar Comparison</div>
+          <div class="radar-wrap">
+            <svg viewBox="0 0 280 280" width="280" height="280" id="radarChart"></svg>
+          </div>
+          <div class="legend-row" style="justify-content:center;">
+            <div class="legend-item"><span class="legend-sw" style="background:#142943"></span>Catalonia</div>
+            <div class="legend-item"><span class="legend-sw" style="background:#7a2b6e"></span>Comunidad de Madrid</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-12" style="margin-top:14px;">
+        <div class="span-12 card">
+          <div class="card-title">Read the Difference</div>
+          <div class="grid grid-2">
+            <div>
+              <div class="guide-step"><div class="guide-num">①</div><div class="guide-text"><strong>Catalonia runs hotter on coastal &amp; forest hazards</strong>Higher wildfire (58 vs 34) and heatwave (61 vs 55) exposure, driven by Mediterranean coastline, the Costa Brava, and dense forest cover inland from Girona and Tarragona.</div></div>
+              <div class="guide-step"><div class="guide-num">②</div><div class="guide-text"><strong>Flood risk is close but Catalonia edges higher</strong>44 vs 36 — both moderate, shaped by short, steep coastal river basins (Ebro delta) versus Madrid's smaller, more centrally-managed waterways.</div></div>
+            </div>
+            <div>
+              <div class="guide-step"><div class="guide-num">③</div><div class="guide-text"><strong>Comunidad de Madrid carries more cold-wave and drought exposure</strong>28 vs 19 cold wave, and 49 vs 41 drought — a continental plateau climate with sharper winter lows and less rainfall buffering than the coast.</div></div>
+              <div class="guide-step"><div class="guide-num">④</div><div class="guide-text"><strong>Seismic risk is low and roughly equal for both</strong>12 (Catalonia) vs 9 (Comunidad de Madrid) — neither sits near an active fault system, unlike communities in the southeast such as Murcia or Andalucía.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  const sections = [
+    {id:'dashboard', num:'01', label:'Dashboard', sub:'National overview & key risk indicators', icon:'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3v-6h6v6h3a1 1 0 001-1V10'},
+    {id:'monitoring', num:'02', label:'Live Monitoring', sub:'Weather & air-quality feeds, refreshed continuously', icon:'M3 12h4l3-9 4 18 3-9h4'},
+    {id:'predictions', num:'03', label:'AI Predictions', sub:'Hazard-specific model scores, 0–100', icon:'M9 3v18M3 9h18M3 15h18'},
+    {id:'intelligence', num:'04', label:'Risk Intelligence', sub:'Composite scoring & classification bands', icon:'M12 2l9 4.5v9L12 20l-9-4.5v-9z'},
+    {id:'map', num:'05', label:'Interactive Map', sub:'Spain by province, colour-coded by risk', icon:'M12 21s7-6.5 7-11a7 7 0 10-14 0c0 4.5 7 11 7 11z'},
+    {id:'alerts', num:'06', label:'Alerts & Guidance', sub:'Notifications & emergency safety steps', icon:'M12 2L2 21h20L12 2zM12 9v5M12 17v.5'},
+    {id:'reports', num:'07', label:'Reports & Analytics', sub:'Forecast charts, exports, model performance', icon:'M4 19h16M7 16v-6m5 6V8m5 8v-3'},
+    {id:'compare', num:'08', label:'Compare', sub:'Catalonia vs. Comunidad de Madrid — hazard by hazard', icon:'M8 3v18M16 3v18M3 8h5M16 8h5M3 16h5M16 16h5'},
+  ];
+
+  const navList = document.getElementById('navList');
+  const mobileTabs = document.getElementById('mobileTabs');
+  sections.forEach(s=>{
+    const btn = document.createElement('button');
+    btn.className = 'nav-item' + (s.id==='dashboard' ? ' active' : '');
+    btn.dataset.target = s.id;
+    btn.innerHTML = `<span class="num">${s.num}</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${s.icon}"/></svg><span>${s.label}</span>`;
+    navList.appendChild(btn);
+
+    const mbtn = document.createElement('button');
+    mbtn.textContent = s.label;
+    mbtn.dataset.target = s.id;
+    if(s.id==='dashboard') mbtn.classList.add('active');
+    mobileTabs.appendChild(mbtn);
+  });
+
+  function activate(id){
+    document.querySelectorAll('[data-target]').forEach(el=>{
+      el.classList.toggle('active', el.dataset.target===id);
+    });
+    document.querySelectorAll('.panel').forEach(p=>{
+      p.hidden = p.dataset.panel !== id;
+    });
+    const s = sections.find(s=>s.id===id);
+    document.getElementById('pageTitle').textContent = s.label;
+    document.getElementById('pageSubtitle').textContent = s.sub;
+    window.scrollTo({top:0, behavior:'instant'});
+  }
+
+  document.querySelectorAll('[data-target]').forEach(el=>{
+    el.addEventListener('click', ()=> activate(el.dataset.target));
+  });
+
+  // Clock
+  function tick(){
+    const now = new Date();
+    const t = now.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    document.getElementById('liveClock').textContent = t;
+    document.getElementById('railClock').textContent = 'LAST SYNC ' + now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  }
+  tick(); setInterval(tick, 1000);
+
+  // Hazard strip (Dashboard)
+  const hazards = [
+    {name:'Flood', score:89, color:'#D6432C'},
+    {name:'Wildfire', score:67, color:'#E8932A'},
+    {name:'Drought', score:54, color:'#E0B23A'},
+    {name:'Heatwave', score:71, color:'#E8932A'},
+    {name:'Seismic', score:22, color:'#2A8C82'},
+    {name:'Cold Wave', score:8, color:'#2A8C82'},
+    {name:'Windstorm', score:46, color:'#E0B23A'},
+  ];
+  const stripEl = document.getElementById('hazardStrip');
+  hazards.forEach(h=>{
+    const chip = document.createElement('div');
+    chip.className = 'hazard-chip';
+    chip.innerHTML = `
+      <div class="htop"><span class="hname">${h.name}</span></div>
+      <div class="hscore" style="color:${h.color}">${h.score}</div>
+      <div class="barwrap"><div class="barfill" style="width:${h.score}%; background:${h.color};"></div></div>
+    `;
+    stripEl.appendChild(chip);
+  });
+
+  // Top provinces list (Dashboard)
+  const topProv = [
+    {name:'Valencia', score:70, color:'#E8932A'},
+    {name:'Alicante', score:68, color:'#E8932A'},
+    {name:'Huelva', score:64, color:'#E8932A'},
+    {name:'Murcia', score:61, color:'#E8932A'},
+    {name:'Almería', score:58, color:'#E0B23A'},
+    {name:'Sevilla', score:55, color:'#E0B23A'},
+    {name:'Castellón', score:53, color:'#E0B23A'},
+    {name:'Granada', score:49, color:'#E0B23A'},
+  ];
+  const tpEl = document.getElementById('topProvinces');
+  topProv.forEach((p,i)=>{
+    const row = document.createElement('div');
+    row.className = 'province-list-row';
+    row.innerHTML = `
+      <div class="province-rank">${String(i+1).padStart(2,'0')}</div>
+      <div class="province-name">${p.name}</div>
+      <div class="province-bar"><div class="province-bar-fill" style="width:${p.score}%; background:${p.color};"></div></div>
+      <div class="province-score">${p.score}</div>
+    `;
+    tpEl.appendChild(row);
+  });
+
+  // Dial grid (Predictions)
+  const dials = [
+    {name:'Flood', method:'XGBoost', score:89, color:'#D6432C'},
+    {name:'Wildfire', method:'RF+LightGBM', score:67, color:'#E8932A'},
+    {name:'Drought', method:'SPEI+LSTM', score:54, color:'#E0B23A'},
+    {name:'Heatwave', method:'XGBoost+WBGT', score:71, color:'#E8932A'},
+    {name:'Seismic', method:'Rule-based', score:22, color:'#2A8C82'},
+    {name:'Cold Wave', method:'Rule-based', score:8, color:'#2A8C82'},
+    {name:'Windstorm', method:'Rule-based', score:46, color:'#E0B23A'},
+    {name:'Composite', method:'Weighted blend', score:70, color:'#E8932A'},
+  ];
+  const dialGrid = document.getElementById('dialGrid');
+  dials.forEach(d=>{
+    const circumference = 130; // half-circle path length approx
+    const pct = d.score/100;
+    const card = document.createElement('div');
+    card.className = 'dial-card';
+    card.innerHTML = `
+      <div class="dname">${d.name}</div>
+      <div class="dmethod">${d.method}</div>
+      <div class="dial-svg-wrap">
+        <svg viewBox="0 0 104 60" width="104" height="60">
+          <path d="M8 56 A 44 44 0 0 1 96 56" fill="none" stroke="#ECE6D9" stroke-width="9" stroke-linecap="round"/>
+          <path d="M8 56 A 44 44 0 0 1 96 56" fill="none" stroke="${d.color}" stroke-width="9" stroke-linecap="round"
+            stroke-dasharray="${138*pct} 138"/>
+        </svg>
+        <div class="dial-score" style="color:${d.color}">${d.score}</div>
+      </div>
+    `;
+    dialGrid.appendChild(card);
+  });
+
+  // Map — stylised province grid standing in for real GeoJSON
+  const provinceGroup = document.getElementById('provinceGroup');
+  const mapData = [
+    {x:60,y:40,score:18},{x:130,y:35,score:25},{x:200,y:30,score:15},{x:280,y:35,score:30},{x:360,y:40,score:12},{x:440,y:50,score:20},
+    {x:60,y:110,score:35},{x:130,y:105,score:45},{x:200,y:100,score:38},{x:280,y:105,score:55},{x:360,y:110,score:42},{x:440,y:120,score:28},
+    {x:60,y:180,score:62},{x:130,y:175,score:58},{x:200,y:170,score:48},{x:280,y:175,score:65},{x:360,y:180,score:70},{x:440,y:190,score:50},
+    {x:60,y:250,score:75},{x:130,y:245,score:68},{x:200,y:240,score:55},{x:280,y:245,score:80},{x:360,y:250,score:60},{x:440,y:260,score:40},
+    {x:60,y:320,score:45},{x:130,y:315,score:38},{x:200,y:310,score:30},{x:280,y:315,score:50},{x:360,y:320,score:35},{x:440,y:330,score:22},
+    {x:130,y:385,score:20},{x:200,y:380,score:15},{x:280,y:385,score:18},{x:360,y:390,score:10},
+  ];
+  const provNames = ['A Coruña','Lugo','Asturias','Cantabria','Bizkaia','Navarra','Pontevedra','Ourense','León','Burgos','Álava','Huesca','Zamora','Valladolid','Soria','Zaragoza','Lleida','Salamanca','Segovia','Guadalajara','Barcelona','Girona','Madrid','Cuenca','Teruel','Tarragona','Castellón','Toledo','Valencia','Albacete','Badajoz','Ciudad Real','Alicante','Murcia'];
+
+  function bandColor(score){
+    if(score>=75) return '#D6432C';
+    if(score>=55) return '#E8932A';
+    if(score>=30) return '#E0B23A';
+    return '#2A8C82';
+  }
+
+  mapData.forEach((p,i)=>{
+    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x', p.x);
+    rect.setAttribute('y', p.y);
+    rect.setAttribute('width', 56);
+    rect.setAttribute('height', 46);
+    rect.setAttribute('rx', 6);
+    rect.setAttribute('fill', bandColor(p.score));
+    rect.setAttribute('stroke', 'rgba(247,243,236,0.25)');
+    rect.setAttribute('stroke-width', '1');
+    rect.setAttribute('opacity', '0.92');
+    rect.setAttribute('data-name', provNames[i] || `Province ${i+1}`);
+    rect.setAttribute('data-score', p.score);
+    rect.setAttributeNS(null, 'class', '');
+    rect.style.cursor = 'pointer';
+    rect.addEventListener('mouseenter', ()=>{rect.style.opacity='0.7'; rect.style.stroke='#fff'; rect.style.strokeWidth='1.5';});
+    rect.addEventListener('mouseleave', ()=>{rect.style.opacity='0.92'; rect.style.stroke='rgba(247,243,236,0.25)'; rect.style.strokeWidth='1';});
+    rect.addEventListener('click', ()=>{
+      const tooltip = document.getElementById('mapTooltip');
+      const score = p.score;
+      const haz = score>=75 ? 'Flood' : score>=55 ? 'Wildfire' : score>=30 ? 'Heatwave' : 'None — normal conditions';
+      tooltip.querySelector('.tprov').textContent = provNames[i] || `Province ${i+1}`;
+      tooltip.querySelector('.tscore').textContent = score;
+      tooltip.querySelector('.tscore').style.color = bandColor(score);
+      tooltip.querySelector('.thaz').textContent = 'Dominant hazard: ' + haz;
+    });
+    provinceGroup.appendChild(rect);
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg','text');
+    label.setAttribute('x', p.x+28);
+    label.setAttribute('y', p.y+27);
+    label.setAttribute('text-anchor','middle');
+    label.setAttribute('font-family','JetBrains Mono');
+    label.setAttribute('font-size','11');
+    label.setAttribute('font-weight','600');
+    label.setAttribute('fill', '#0B1B2B');
+    label.style.pointerEvents = 'none';
+    label.textContent = p.score;
+    provinceGroup.appendChild(label);
+  });
+
+  // Compare — Catalonia vs Comunidad de Madrid (population-weighted region averages)
+  const cmpHazards = [
+    {name:'Flood', a:44, b:36},
+    {name:'Wildfire', a:58, b:34},
+    {name:'Drought', a:41, b:49},
+    {name:'Heatwave', a:61, b:55},
+    {name:'Seismic', a:12, b:9},
+    {name:'Cold Wave', a:19, b:28},
+    {name:'Windstorm', a:33, b:30},
+  ];
+  const cmpRowsEl = document.getElementById('compareRows');
+  const colorA = '#142943', colorB = '#7a2b6e';
+  cmpHazards.forEach(h=>{
+    const row = document.createElement('div');
+    row.className = 'compare-row';
+    row.innerHTML = `
+      <div class="cmp-val left-val" style="color:${colorA}">${h.a}</div>
+      <div class="cmp-bar-track"><div class="cmp-bar-fill" style="width:${h.a}%; background:${colorA};"></div></div>
+      <div class="cmp-label">${h.name}</div>
+      <div class="cmp-bar-track right-side"><div class="cmp-bar-fill" style="width:${h.b}%; background:${colorB};"></div></div>
+      <div class="cmp-val right-val" style="color:${colorB}">${h.b}</div>
+    `;
+    cmpRowsEl.appendChild(row);
+  });
+
+  // Radar chart — 7 axes
+  (function(){
+    const svg = document.getElementById('radarChart');
+    if(!svg) return;
+    const cx = 140, cy = 140, maxR = 105;
+    const n = cmpHazards.length;
+    const angle = i => (Math.PI*2*i/n) - Math.PI/2;
+    const pointFor = (i, val) => {
+      const r = (val/100) * maxR;
+      return [cx + r*Math.cos(angle(i)), cy + r*Math.sin(angle(i))];
+    };
+
+    // grid rings
+    [0.25,0.5,0.75,1].forEach(f=>{
+      let pts = [];
+      for(let i=0;i<n;i++){
+        const r = f*maxR;
+        pts.push(`${cx + r*Math.cos(angle(i))},${cy + r*Math.sin(angle(i))}`);
+      }
+      const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+      poly.setAttribute('points', pts.join(' '));
+      poly.setAttribute('fill','none');
+      poly.setAttribute('stroke', f===1 ? 'rgba(91,107,122,0.35)' : 'rgba(91,107,122,0.15)');
+      poly.setAttribute('stroke-width','1');
+      svg.appendChild(poly);
+    });
+
+    // axis lines + labels
+    cmpHazards.forEach((h,i)=>{
+      const [x,y] = pointFor(i,100);
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1',cx); line.setAttribute('y1',cy);
+      line.setAttribute('x2',x); line.setAttribute('y2',y);
+      line.setAttribute('stroke','rgba(91,107,122,0.2)');
+      line.setAttribute('stroke-width','1');
+      svg.appendChild(line);
+
+      const labelR = maxR + 16;
+      const lx = cx + labelR*Math.cos(angle(i));
+      const ly = cy + labelR*Math.sin(angle(i));
+      const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+      text.setAttribute('x', lx);
+      text.setAttribute('y', ly);
+      text.setAttribute('text-anchor','middle');
+      text.setAttribute('dominant-baseline','middle');
+      text.setAttribute('font-family','Inter');
+      text.setAttribute('font-size','10.5');
+      text.setAttribute('font-weight','600');
+      text.setAttribute('fill','#5B6B7A');
+      text.textContent = h.name;
+      svg.appendChild(text);
+    });
+
+    function drawSeries(key, color, fillOpacity){
+      let pts = [];
+      cmpHazards.forEach((h,i)=>{ pts.push(pointFor(i, h[key])); });
+      const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+      poly.setAttribute('points', pts.map(p=>p.join(',')).join(' '));
+      poly.setAttribute('fill', color);
+      poly.setAttribute('fill-opacity', fillOpacity);
+      poly.setAttribute('stroke', color);
+      poly.setAttribute('stroke-width','2');
+      svg.appendChild(poly);
+      pts.forEach(p=>{
+        const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        dot.setAttribute('cx', p[0]); dot.setAttribute('cy', p[1]); dot.setAttribute('r','3');
+        dot.setAttribute('fill', color);
+        svg.appendChild(dot);
+      });
+    }
+    drawSeries('a', colorA, 0.16);
+    drawSeries('b', colorB, 0.16);
+  })();
+
+})();
+</script>
+
+</body>
+</html>
