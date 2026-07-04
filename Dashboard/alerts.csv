@@ -1,0 +1,3 @@
+alert_id,timestamp,province,hazard_type,severity,risk_score,message
+ALT-1000,2026-07-02 06:00,Valencia,Heatwave,HIGH,56.7,HIGH heatwave risk detected in Valencia (score 56.7/100). Immediate monitoring recommended.
+ALT-1001,2026-07-02 06:00,Alicante,Heatwave,HIGH,56.4,HIGH heatwave risk detected in Alicante (score 56.4/100). Immediate monitoring recommended.

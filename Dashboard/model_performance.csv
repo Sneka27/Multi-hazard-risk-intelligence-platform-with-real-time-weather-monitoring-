@@ -1,0 +1,5 @@
+hazard_model,accuracy,precision,recall,f1_score
+heatwave,0.843,0.867,0.852,0.86
+flood,0.852,0.818,0.73,0.771
+wildfire,0.87,0.667,0.444,0.533
+OVERALL (avg),0.855,0.784,0.675,0.721

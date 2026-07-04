@@ -1,0 +1,9 @@
+alert_id,province,hazard_type,guidance
+ALT-1000,Valencia,Heatwave,Stay indoors during peak heat hours (12:00-17:00)
+ALT-1000,Valencia,Heatwave,Drink water regularly even without feeling thirsty
+ALT-1000,Valencia,Heatwave,Check on elderly and vulnerable neighbors
+ALT-1000,Valencia,Heatwave,Avoid strenuous outdoor activity
+ALT-1001,Alicante,Heatwave,Stay indoors during peak heat hours (12:00-17:00)
+ALT-1001,Alicante,Heatwave,Drink water regularly even without feeling thirsty
+ALT-1001,Alicante,Heatwave,Check on elderly and vulnerable neighbors
+ALT-1001,Alicante,Heatwave,Avoid strenuous outdoor activity
